@@ -9,3 +9,7 @@ It is highly extensible and you can design textareas that can be used from all k
 # Documentation
 
 http://explosion-pills.com/development/jquery/plugins/supertextarea/#headerlinks_ident2
+
+# Installation
+
+Include jQuery.  Any time after that, include this script as you would any other script file.  You can then use `$("textarea").supertextarea();` at will.
