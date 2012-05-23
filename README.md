@@ -1,4 +1,4 @@
-# jQuery Supertextarea Plugin
+# jQuery Supertextarea Plugin (0.0)
 
 ## Introduction
 Supertextarea turns your ordinary, lame textareas into extraordinary super text areas. You can have them shrink or expand vertically or horizontally and have the tab key create real tab stops or even spaces. Supertextareas can have max lengths and even automatically display remaining characters.
