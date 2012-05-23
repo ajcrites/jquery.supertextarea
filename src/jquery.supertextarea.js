@@ -54,16 +54,16 @@
          justice.maxw = justice.minw;
       }
       area.css(justice.css);
-      
+
       // Code below will lead to: "Error: area.height(justice.minh) is null"
       // in case justice.minh is null (and thus area.height produce null)
       // area.height(justice.minh).width(justice.minw);
       // Below if workaround for that:
       if (justice.minh != null) {
-    	  area = area.height(justice.minh);
+         area = area.height(justice.minh);
       }
       if (justice.minw != null) {
-    	  area = area.width(justice.minw);
+         area = area.width(justice.minw);
       }
 
       if (justice.tabr.use && justice.tabr.num < 1) {
