@@ -89,6 +89,10 @@
           */
          , minl: 0
          /**
+          * If true, leading/trailing whitespace is not counted for min length
+          */
+         , trim: true
+         /**
           * Display to-go
           */
          , dstg: {
@@ -184,7 +188,9 @@
             return false;
          }
 
+         //"beholder" shadows the textarea to match size
          var beh = $('<div />').css({'position': 'absolute','display': 'none', 'word-wrap':'break-word'});
+         //get the height of the line in pixels, from available source
          var line = parseInt(area.css('line-height')) || parseInt(area.css('font-size'));
          var goalheight = 0;
 
@@ -194,6 +200,9 @@
          }
          beh.css('max-width', justice.maxw);
 
+         /**
+          * Update height of supertextarea
+          */
          function eval_height(height, overflow){
             nh = Math.floor(parseInt(height));
             if (area.height() != nh) {
@@ -201,6 +210,9 @@
             }
          }
 
+         /**
+          * Update width of supertextarea
+          */
          function eval_width(width, overflow) {
             nw = Math.floor(parseInt(width));
             if (area.width() != nw) {
@@ -208,7 +220,17 @@
             }
          }
 
+         /**
+          * Update the textarea size and its contents / indicators
+          */
          function update(e) {
+            if (justice.tabr.use && e) {
+               tab_replace(e);
+            }
+
+            /**
+             * Handle display-remaining
+             */
             if (justice.dsrm.use && justice.maxl && !area.data('rmv')) {
                var dsm;
                if (!$("#textarea_dsrm" + area.data('partner')).length) {
@@ -267,7 +289,9 @@
 
             if (ac + '&nbsp;' != bc) {
                beh.html(ac + '&nbsp;');
-               if (Math.abs(beh.height() + line - area.height()) > 3) {
+               if (Math.abs(beh.height() + line - area.height()) > 3
+                  || Math.abs(beh.width() + line - area.width()) > 3
+               ) {
                   var nh = beh.height() + line;
                   var maxh = justice.maxh;
                   var minh = justice.minh;
@@ -280,8 +304,7 @@
                   else {
                      eval_height(nh, 'hidden');
                   }
-               }
-               if (Math.abs(beh.width() + line - area.width()) > 3) {
+
                   var nw = beh.width() + line;
                   var maxw = justice.maxw;
                   var minw = justice.minw;
@@ -296,43 +319,55 @@
                   }
                }
             }
-            if (justice.tabr.use && e) {
-               tab_replace(e);
-            }
          }
 
+         /**
+          * Prevent form submission if supertextarea text length is not in the correct limits
+          */
          area.parents("form").submit(function (e) {
-            if (area.val().length < justice.minl || justice.minl > 0 && area.data('plch')) {
+            var val;
+            if (justice.trim) {
+               val = $.trim(area.val());
+            }
+            else {
+               val = area.val();
+            }
+            if (val.length < justice.minl || justice.minl > 0 && area.data('plch')) {
                if (justice.dstg.slide) {
                   $("html, body").animate({scrollTop: area.offset().top});
                }
                e.stopPropagation();
                e.preventDefault();
-               return false;
             }
-            if (area.data('plch')) {
+            else if (area.data('plch')) {
                area.val('');
             }
          });
 
+         /**
+          * Replace tab input with a tab character or the correct number of spaces
+          */
          function tab_replace(e) {
-            var key = e.keyCode ? e.keyCode : e.charChode ? e.charCode : e.which;
+            var key = e.which;
             var sp = justice.tabr.space ? " " : "\t";
             var str = new Array(justice.tabr.num + 1).join(sp);
             if (key == 9 && !e.shiftKey && !e.ctrlKey && !e.altKey) {
                var os = area.scrollTop();
-               if (area.setSelectionRange) {
-                  var ss = area.selectionStart;
-                  var se = area.selectionEnd;
-                  area.val(area.val().substring(0, ss) + str + area.val.substr(se));
-                  area.focus();
+               var ta = area.get(0);
+               if (ta.setSelectionRange) {
+                  var ss = ta.selectionStart;
+                  var se = ta.selectionEnd;
+                  area.val(area.val().substring(0, ss) + str + area.val().substr(se));
+                  ta.setSelectionRange(ss + str.length, se + str.length);
+                  e.returnValue = false;
                }
                else if (area.createTextRange) {
                   document.selection.createRange().text = str;
                   e.returnValue = false;
                }
+               //Fallback if we can't correctly create a range.  Just disallow tab replacement.
                else {
-                  area.val(area.val() + str);
+                  return true;
                }
                area.scrollTop(os);
                if (e.preventDefault) {
@@ -343,6 +378,9 @@
             return true;
          }
 
+         /**
+          * Placeholder handling.  Remove on focus, add on blur if supertextarea is empty
+          */
          if (justice.plch.use) {
             if (!area.val().length) {
                if (justice.plch.css != undefined) {
@@ -374,7 +412,7 @@
 
          area.css({'overflow':'auto'})
             .keydown(function (e) { update(e); })
-            .live('input paste', function () { setTimeout(update, 250); });
+            .bind('paste', function () { setTimeout(update, 250); });
 
          update();
       });
