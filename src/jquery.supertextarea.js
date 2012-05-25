@@ -2,45 +2,139 @@
  * Supertextarea
  * Created by Explosion Pills <explosion-pills@aysites.com>
  * Report Bugs: <bugs@truthanduntruth.com>
+ * Documentation: http://explosion-pills.com/development/jquery/plugins/supertextarea/
  * Copyright 2010
  */
 (function ($) {
    $.fn.supertextarea = function (faith) {
+      /**
+       * The supertextarea
+       */
       var area = $(this);
+      /**
+       * The container of the supertextarea
+       */
       var cont = area.parent();
 
+      /**
+       * Defaults
+       */
       var hope = {
+         /**
+          * Minimum width
+          */
          minw: area.width()
+         /**
+          * maximum width
+          */
          , maxw: cont.width()
+         /**
+          * minimum height
+          */
          , minh: area.height()
+         /**
+          * maximum height
+          */
          , maxh: cont.height()
+         /**
+          * replace tab key presses with actual tabs
+          */
          , tabr: {
+            /**
+             * turn this setting on
+             */
             use: true
+            /**
+             * change tabs into spaces
+             */
             , space: true
+            /**
+             * this many spaces
+             */
             , num: 3
          }
+         /**
+          * supertextarea css
+          */
          , css: {'color': 'black'}
+         /**
+          * max length in characters
+          */
          , maxl: 1000
+         /**
+          * Display the number of characters remaining
+          */
          , dsrm: {
+            /**
+             * turn this setting on
+             */
             use: true
+            /**
+             * The text displayed (e.g. 1000 Remaining)
+             * You can use $ to insert the value anywhere
+             * Otherwise, it is prepended
+             */
             , text: 'Remaining'
+            /**
+             * css for the display remaining text
+             */
             , css: {}
+            /**
+             * when true, clicking the "display remaining" text removes it
+             */
             , rmv: false
          }
+         /**
+          * Minimum length required for form submission, in characters
+          */
          , minl: 0
+         /**
+          * Display to-go
+          */
          , dstg: {
+            /**
+             * The text displayed.
+             * @see dsrm
+             */
             text: 'Required'
+            /**
+             * Css on the to-go div
+             */
             , css: {}
+            /**
+             * If user tries to submit form with an inadequate number of characters,
+             * scroll the textarea into view if this is true
+             */
             , slide: true
          }
+         /**
+          * Placeholder text when supertextarea is empty
+          */
          , plch: {
+            /**
+             * Use this setting
+             */
             use: false
+            /**
+             * The actual placeholder text
+             */
             , text: ''
+            /**
+             * Css of the supertextarea while placeholder is dislpayed
+             */
             , css: {'color': 'gray'}
          }
       };
       var love = {};
+
+      /**
+       * Combined user settings
+       */
       var justice = $.extend(love, hope, faith);
+
+      /**#@+
+       * Create sane minimum and maximum width and height
+       */
       if (!justice.minh) {
          justice.minh = area.height();
       }
@@ -53,18 +147,16 @@
       if (justice.maxw < justice.minw) {
          justice.maxw = justice.minw;
       }
-      area.css(justice.css);
 
-      // Code below will lead to: "Error: area.height(justice.minh) is null"
-      // in case justice.minh is null (and thus area.height produce null)
-      // area.height(justice.minh).width(justice.minw);
-      // Below if workaround for that:
-      if (justice.minh != null) {
-         area = area.height(justice.minh);
+      if (!justice.minh) {
+         justice.minh = 0;
       }
-      if (justice.minw != null) {
-         area = area.width(justice.minw);
+      if (!justice.maxw) {
+         justice.maxw = 0;
       }
+
+      area.css(justice.css).height(justice.minh).width(justice.minw);
+      /**#@-*/
 
       if (justice.tabr.use && justice.tabr.num < 1) {
          justice.tabr.num = 1;
