@@ -288,7 +288,7 @@
             var bc = beh.html();
 
             if (ac + '&nbsp;' != bc) {
-               beh.html(ac + '&nbsp;');
+               beh.html(ac + '&nbsp;&nbsp;');
                if (Math.abs(beh.height() + line - area.height()) > 3
                   || Math.abs(beh.width() + line - area.width()) > 3
                ) {
@@ -315,7 +315,12 @@
                      eval_width(minw, 'hidden');
                   }
                   else {
-                     eval_width(nw, 'hidden');
+                     if (beh.height() + line > maxh) {
+                        eval_width(nw + line, 'hidden');
+                     }
+                     else {
+                        eval_width(nw, 'hidden');
+                     }
                   }
                }
             }
@@ -361,7 +366,7 @@
                   ta.setSelectionRange(ss + str.length, se + str.length);
                   e.returnValue = false;
                }
-               else if (area.createTextRange) {
+               else if (ta.createTextRange) {
                   document.selection.createRange().text = str;
                   e.returnValue = false;
                }
@@ -412,6 +417,7 @@
 
          area.css({'overflow':'auto'})
             .keydown(function (e) { update(e); })
+            .keyup(function () { update(); })
             .bind('paste', function () { setTimeout(update, 250); });
 
          update();
