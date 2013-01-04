@@ -6,191 +6,255 @@
  */
 ;(function ($, window, document, undefined) {
 
-   var _counter = 0,
-      pluginName = "supertextarea",
-      defaultOptions = {
-         /**#@+
-          * Minimum/maximum width/height of the textarea.  By default, these are
-          * the width/height of the textarea itself (for minumum) and its container
-          * (parent by default) for maximum.
-          */
-         minWidth: undefined,
-         maxWidth: undefined,
-         minHeight: undefined,
-         maxHeight: undefined,
-         /**#@-*/
-
-         //Tab key does not change focus, but is used in the textarea
-         tabReplace: {
-            //turn this setting on
-            use: true,
-            //change tabs into spaces
-            space: true,
-            //this many spaces
-            num: 3
-         },
-
-         //supertextarea css; also used as CSS when placeholder is removed
-         css: {'color': 'black'},
-
-         //maximum length in characters allowed for submission
-         //User cannot type more characters than this
-         //If false, there is no limit.
-         maxLength: false,
-
-         //minumum length in characters required for submission
-         minLength: 0,
-
-         //Display the number of characters remaining
-         displayRemaining: {
-            //turn this setting on
-            use: true,
-            //The text displayed (e.g. 1000 Remaining)
-            //You can use $ to insert the value anywhere
-            //Otherwise, it is prepended
-            notice: 'Remaining',
-            /**
-             * css for the display remaining text
+    var _counter = 0,
+        pluginName = "supertextarea",
+        defaultOptions = {
+            /**#@+
+             * Minimum/maximum width/height of the textarea.  By default, these are
+             * the width/height of the textarea itself (for minumum) and its container
+             * (parent by default) for maximum.
              */
-            css: {}
-         },
+            minWidth: undefined,
+            maxWidth: undefined,
+            minHeight: undefined,
+            maxHeight: undefined,
+            /**#@-*/
 
-         //If true, leading/trailing whitespace is not counted for min length
-         trim: true,
+            //Tab key does not change focus, but is used in the textarea
+            tabReplace: {
+                //turn this setting on
+                use: true,
+                //change tabs into spaces
+                space: true,
+                //this many spaces
+                num: 3
+            },
 
-         //Display to-go
-         displayToGo: {
-            //The text displayed.  See displayRemaining
-            text: 'Required',
-            //Css on the to-go div
-            , css: {},
-            //If user tries to submit form with an inadequate number of characters,
-            //scroll the textarea into view if this is true
-            slide: true
-         },
+            //supertextarea css; also used as CSS when placeholder is removed
+            css: {'color': 'black'},
 
-         //Placeholder text when supertextarea is empty
-         placeholder: {
-            //Use this setting
-            use: false,
-            //The actual placeholder text
-            text: '',
-            //Css of the supertextarea while placeholder is dislpayed
-            css: {'color': 'gray'}
-         }
-      }
-   ;
+            //maximum length in characters allowed for submission
+            //User cannot type more characters than this
+            //If false, there is no limit.
+            maxLength: false,
 
-   function Plugin(textarea, userOptions) {
-      this.textarea = textarea;
+            //minumum length in characters required for submission
+            minLength: 0,
 
-      defaultOptions.minWidth = textarea.width();
-      defaultOptions.minHeight = textarea.height();
-      defaultOptions.maxWidth = textarea.parent().width();
-      defaultOptions.maxHeight = textarea.parent().height();
+            //Display the number of characters remaining
+            displayRemaining: {
+                //turn this setting on
+                use: true,
+                //The text displayed (e.g. 1000 Remaining)
+                //You can use $ to insert the value anywhere
+                //Otherwise, it is prepended
+                notice: 'Remaining',
+                /**
+                 * css for the display remaining text
+                 */
+                css: {}
+            },
 
-      this.options = $.extend({}, defaultOptions, userOptions);
-      this._defaultOptions = defaultOptions;
-      this._name = pluginName;
-   }
+            //If true, leading/trailing whitespace is not counted for min length
+            trim: true,
 
-   Plugin.prototype[pluginName] = function (options) {
-      //The supertextarea
-      var area = this;
+            //Display to-go
+            displayToGo: {
+                //The text displayed.  See displayRemaining
+                text: 'Required',
+                //Css on the to-go div
+                , css: {},
+                //If user tries to submit form with an inadequate number of characters,
+                //scroll the textarea into view if this is true
+                slide: true
+            },
 
-      /**#@+
-       * Create sane minimum and maximum width and height
-       */
-      if (!options.minHeight) {
-         options.minHeight = area.height();
-      }
-      if (!options.minWidth) {
-         options.minWidth = area.width();
-      }
-      if (options.maxHeight < options.minHeight) {
-         options.maxHeight = options.minHeight;
-      }
-      if (options.maxWidth < options.minWidth) {
-         options.maxWidth = options.minWidth;
-      }
+            //Placeholder text when supertextarea is empty
+            placeholder: {
+                //Use this setting
+                use: false,
+                //The actual placeholder text
+                text: '',
+                //Css of the supertextarea while placeholder is dislpayed
+                css: {'color': 'gray'}
+            }
+        }
+    ;
 
-      if (!options.minHeight) {
-         options.minHeight = 0;
-      }
-      if (!options.maxWidth) {
-         options.maxWidth = 0;
-      }
+    Plugin = function (textarea, userOptions) {
+        this.textarea = textarea;
 
-      area.css(options.css).height(options.minHeight).width(options.minWidth);
-      /**#@-*/
+        defaultOptions.minWidth = textarea.width();
+        defaultOptions.minHeight = textarea.height();
+        defaultOptions.maxWidth = textarea.parent().width();
+        defaultOptions.maxHeight = textarea.parent().height();
 
-      if (options.tabReplace.use && options.tabReplace.num < 1) {
-         options.tabReplace.num = 1;
-      }
+        this.options = $.extend({}, defaultOptions, userOptions);
+        this._defaultOptions = defaultOptions;
+        this._name = pluginName;
+    };
 
-      var rep_css = [
-         'paddingTop',
-         'paddingRight',
-         'paddingBottom',
-         'paddingLeft',
-         'fontSize',
-         'lineHeight',
-         'fontFamily',
-         'fontWeight'
-      ];
+    Plugin.prototype.init = function () {
+        /**#@+
+         * Create sane minimum and maximum width and height
+         */
+        if (!this.options.minHeight) {
+            this.options.minHeight = this.textarea.height();
+        }
+        if (!this.options.minWidth) {
+            this.options.minWidth = this.textarea.width();
+        }
+        if (this.options.maxHeight < this.options.minHeight) {
+            this.options.maxHeight = this.options.minHeight;
+        }
+        if (this.options.maxWidth < this.options.minWidth) {
+            this.options.maxWidth = this.options.minWidth;
+        }
 
-      var idcounter = _counter++;
+        if (!this.options.minHeight) {
+            this.options.minHeight = 0;
+        }
+        if (!this.options.maxWidth) {
+            this.options.maxWidth = 0;
+        }
 
-      //"beholder" shadows the textarea to match size
-      var beh = $('<div>').css({'position': 'absolute','display': 'none', 'word-wrap':'break-word'});
+        this.textarea
+            .css(this.options.css)
+            .height(this.options.minHeight)
+            .width(this.options.minWidth)
+        ;
+        /**#@-*/
 
-      //get the height of the line in pixels, from available source
-      var line = parseInt(area.css('line-height')) || parseInt(area.css('font-size'));
-      var goalheight = 0;
+        //At least one character has to be used to replace tabs
+        if (this.options.tabReplace.use && this.options.tabReplace.num < 1) {
+            this.options.tabReplace.num = 1;
+        }
 
-      //Copy all textarea css that affects width/height to the beholder
-      beh.appendTo(area.parent());
-      for (var i = 0; i < rep_css.length; i++) {
-         beh.css(rep_css[i].toString(), area.css(rep_css[i].toString()));
-      }
-      beh.css('max-width', options.maxWidth);
+        //each of these styles affects width/height, so the placeholder div used to calculate
+        //necessary changes to width/height needs to mimic the textarea styles
+        var rep_css = [
+            'paddingTop',
+            'paddingRight',
+            'paddingBottom',
+            'paddingLeft',
+            'fontSize',
+            'lineHeight',
+            'fontFamily',
+            'fontWeight'
+        ];
 
-      //Update height of supertextarea
-      function eval_height(height, overflow) {
-         var newHeight = Math.floor(parseInt(height));
-         if (area.height() != newHeight) {
-            area.css({'height': newHeight + 'px', 'overflow-y': overflow});
-         }
-      }
+        //id number of the display notice
+        var idcounter = _counter++;
 
-      //Update width of supertextarea
-      function eval_width(width, overflow) {
-         var newWidth = Math.floor(parseInt(width));
-         if (area.width() != newWidth) {
-            area.css({'width': newWidth + 'px', 'overflow-x': overflow});
-         }
-      }
+        //"beholder" shadows the textarea to match size
+        var beh = $('<div>').css({'position': 'absolute','display': 'none', 'word-wrap':'break-word'});
 
-      //Update the textarea size and its contents / indicators
-      function update(e) {
-         if (options.tabReplace.use && e) {
-            tab_replace(e);
-         }
+        //get the height of the line in pixels, from available source
+        var line = parseInt(this.textarea.css('line-height')) || parseInt(this.textarea.css('font-size'));
+        var goalheight = 0;
 
-         //Handle display-remaining
-         if (options.displayRemaining.use && options.maxLength) {
+        //Copy all textarea css that affects width/height to the beholder
+        beh.appendTo(this.textarea.parent());
+        for (var i = 0; i < rep_css.length; i++) {
+            beh.css(rep_css[i].toString(), this.textarea.css(rep_css[i].toString()));
+        }
+        beh.css('max-width', this.options.maxWidth);
+
+        //Prevent form submission if supertextarea text length is not in the correct limits
+        this.textarea.closest("form").submit($.proxy(function (e) {
+            var val = this.textarea.val();
+            if (this.options.trim) {
+                val = $.trim(val);
+            }
+
+            //Minlength requirement not met, so prevent form submission
+            if (val.length < this.options.minLength || this.options.minLength > 0 && this.textarea.data('usingPlaceholder')) {
+                if (this.options.displayToGo.slide) {
+                    $("html, body").animate({scrollTop: this.textarea.offset().top});
+                }
+                e.preventDefault();
+            }
+            else if (this.textarea.data('usingPlaceholder')) {
+                this.textarea.val('');
+            }
+        }, this));
+
+        //Placeholder handling.  Remove on focus, add on blur if supertextarea is empty
+        if (this.options.placholder.use) {
+            if (!this.textarea.val().length) {
+                if (this.options.placeholder.css != undefined) {
+                    this.textarea.css(options.placeholder.css);
+                }
+                this.textarea.val(options.placeholder.text);
+                this.textarea.data('usingPlaceholder', true);
+            }
+
+            this.textarea.focus($.proxy(function () {
+                if (this.textarea.data('usingPlaceholder')) {
+                    this.textarea.val('');
+                    if (this.options.css != undefined) {
+                        this.textarea.css(this.options.css);
+                    }
+                    this.textarea.data('usingPlaceholder', false);
+                }
+            }, this));
+
+            this.textarea.blur($.proxy(function () {
+                if (!this.textarea.val().length) {
+                    this.textarea.data('usingPlaceholder', true);
+                    if (this.options.placeholder.css != undefined) {
+                        this.textarea.css(this.options.placeholder.css);
+                    }
+                    this.textarea.val(this.options.placeholder.text);
+                }
+            }, this));
+        }
+
+        this.textarea.css({'overflow':'auto'})
+            .keydown($.proxy(function (e) { this.update(e); }, this))
+            .keyup($.proxy(function () { this.update(); }, this))
+            .bind('paste', $.proxy(function () { setTimeout(this.update, 250); }), this)
+        ;
+
+        this.update();
+    };
+
+    //Update height of supertextarea
+    Plugin.prototype.eval_height = function (height, overflow) {
+        var newHeight = Math.floor(parseInt(height));
+        if (this.textarea.height() != newHeight) {
+            this.textarea.css({'height': newHeight + 'px', 'overflow-y': overflow});
+        }
+    };
+
+    //Update width of supertextarea
+    Plugin.prototype.eval_width = function (width, overflow) {
+        var newWidth = Math.floor(parseInt(width));
+        if (this.textarea.width() != newWidth) {
+            this.textarea.css({'width': newWidth + 'px', 'overflow-x': overflow});
+        }
+    };
+
+        //Update the textarea size and its contents / indicators
+    Plugin.prototype.update = function (e) {
+        if (this.options.tabReplace.use && e) {
+            this.tab_replace(e);
+        }
+
+        //Handle display-remaining
+        if (this.options.displayRemaining.use && this.options.maxLength) {
             var displayMessage;
-            if (!$("#textarea_dsrm" + area.data('displayRemaining')).length) {
-               displayMessage = $('<div>');
-               displayMessage.attr('id', "textarea_dsrm" + idcounter);
-               area.after(displayMessage);
-               area.data('displayRemaining', idcounter);
+            if (!$("#textarea_dsrm" + this.textarea.data('displayRemaining')).length) {
+                displayMessage = $('<div>');
+                displayMessage.attr('id', "textarea_dsrm" + idcounter);
+                this.textarea.after(displayMessage);
+                this.textarea.data('displayRemaining', idcounter);
             }
             else {
-               displayMessage = $("#textarea_dsrm" + area.data('displayRemaining'));
+                displayMessage = $("#textarea_dsrm" + this.textarea.data('displayRemaining'));
             }
 
-            var tl = area.data('usingPlaceholder') ? 0 : area.val().length;
+            var tl = this.textarea.data('usingPlaceholder') ? 0 : this.textarea.val().length;
             var txt = options.maxLength - tl;
             txt = txt < 0 ? 0 : txt;
             var rem = tl - options.minLength;
@@ -198,184 +262,121 @@
             var num;
             var msg;
 
-            if (rem < 0 && options.displayToGo.text != undefined) {
-               num = Math.abs(rem);
-               msg = options.displayToGo.text;
-               if (options.displayToGo.css != undefined) {
-                  displayMessage.css(options.displayToGo.css);
-               }
-               else if (options.displayRemaining.css != undefined) {
-                  displayMessage.css(options.displayRemaining.css);
-               }
+            if (rem < 0 && this.options.displayToGo.text != undefined) {
+                num = Math.abs(rem);
+                msg = this.options.displayToGo.text;
+                if (this.options.displayToGo.css != undefined) {
+                    displayMessage.css(this.options.displayToGo.css);
+                }
+                else if (this.options.displayRemaining.css != undefined) {
+                    displayMessage.css(this.options.displayRemaining.css);
+                }
             }
             else {
-               num = txt;
-               msg = options.displayRemaining.text;
-               if (options.displayRemaining.css != undefined) {
-                  displayMessage.css(options.displayRemaining.css);
-               }
+                num = txt;
+                msg = this.options.displayRemaining.text;
+                if (this.options.displayRemaining.css != undefined) {
+                    displayMessage.css(this.options.displayRemaining.css);
+                }
             }
 
             //Replace the dollar sign in the message with the number of remaining characters
             if (msg.match(/\$/)) {
-               remtxt = msg.replace('$', ' ' + num + ' ');
+                remtxt = msg.replace('$', ' ' + num + ' ');
             }
             else {
-               remtxt = num + ' ' + msg;
+                remtxt = num + ' ' + msg;
             }
             displayMessage.text(remtxt);
-         }
+        }
 
-         if (options.maxLength && options.maxLength - tl < 0) {
-            area.val(area.val().substring(0, options.maxLength));
-         }
+        if (this.options.maxLength && this.options.maxLength - tl < 0) {
+            this.textarea.val(this.textarea.val().substring(0, this.options.maxLength));
+        }
 
-         //Figure out the textarea content as html to compare with the beholder size
-         var ac = area.val().replace(/&/g,'&amp;').replace(/  /g, '&nbsp;&nbsp;').replace(/<|>/g, '&gt;').replace(/\n/g, '<br />');
-         var bc = beh.html();
+        //Figure out the textarea content as html to compare with the beholder size
+        var ac = this.textarea.val().replace(/&/g,'&amp;').replace(/  /g, '&nbsp;&nbsp;').replace(/<|>/g, '&gt;').replace(/\n/g, '<br />');
+        var bc = beh.html();
 
-         //Update width/height of textarea when it goes outside of its bounds by enough
-         if (ac + '&nbsp;' != bc) {
+        //Update width/height of textarea when it goes outside of its bounds by enough
+        if (ac + '&nbsp;' != bc) {
             beh.html(ac + '&nbsp;&nbsp;');
             if (Math.abs(beh.height() + line - area.height()) > 3
-               || Math.abs(beh.width() + line - area.width()) > 3
+                || Math.abs(beh.width() + line - area.width()) > 3
             ) {
-               var nh = beh.height() + line;
-               var maxh = options.maxh;
-               var minh = options.minh;
-               if (nh >= maxh) {
-                  eval_height(maxh, 'auto');
-               }
-               else if (nh <= minh) {
-                  eval_height(minh, 'hidden');
-               }
-               else {
-                  eval_height(nh, 'hidden');
-               }
+                var nh = beh.height() + line;
+                var maxh = options.maxh;
+                var minh = options.minh;
+                if (nh >= maxh) {
+                    this.eval_height(maxh, 'auto');
+                }
+                else if (nh <= minh) {
+                    this.eval_height(minh, 'hidden');
+                }
+                else {
+                    this.eval_height(nh, 'hidden');
+                }
 
-               var nw = beh.width() + line;
-               var maxw = options.maxw;
-               var minw = options.minw;
-               if (nw >= maxw) {
-                  eval_width(maxw, 'auto');
-               }
-               else if (nw <= minw) {
-                  eval_width(minw, 'hidden');
-               }
-               else {
-                  if (beh.height() + line > maxh) {
-                     eval_width(nw + line, 'hidden');
-                  }
-                  else {
-                     eval_width(nw, 'hidden');
-                  }
-               }
+                var nw = beh.width() + line;
+                var maxw = options.maxw;
+                var minw = options.minw;
+                if (nw >= maxw) {
+                    this.eval_width(maxw, 'auto');
+                }
+                else if (nw <= minw) {
+                    this.eval_width(minw, 'hidden');
+                }
+                else {
+                    if (beh.height() + line > maxh) {
+                        this.eval_width(nw + line, 'hidden');
+                    }
+                    else {
+                        this.eval_width(nw, 'hidden');
+                    }
+                }
             }
-         }
-      }
+        }
+    };
 
-      //Prevent form submission if supertextarea text length is not in the correct limits
-      area.closest("form").submit(function (e) {
-         var val;
-         if (options.trim) {
-            val = $.trim(area.val());
-         }
-         else {
-            val = area.val();
-         }
+        //Replace tab input with a tab character or the correct number of spaces
+    Plugin.prototype.tab_replace = function (e) {
+        var key = e.which;
+        var sp = this.options.tabReplace.space ? " " : "\t";
+        var str = new Array(this.options.tabReplace.num + 1).join(sp);
 
-         //Minlength requirement not met, so prevent form submission
-         if (val.length < options.minLength || options.minLength > 0 && area.data('usingPlaceholder')) {
-            if (options.displayToGo.slide) {
-               $("html, body").animate({scrollTop: area.offset().top});
-            }
-            e.preventDefault();
-         }
-         else if (area.data('usingPlaceholder')) {
-            area.val('');
-         }
-      });
-
-      //Replace tab input with a tab character or the correct number of spaces
-      function tab_replace(e) {
-         var key = e.which;
-         var sp = options.tabReplace.space ? " " : "\t";
-         var str = new Array(options.tabr.num + 1).join(sp);
-
-         //the tab key; prevent blurring and replace with either tab character or spaces
-         if (key == 9 && !e.shiftKey && !e.ctrlKey && !e.altKey) {
+        //the tab key; prevent blurring and replace with either tab character or spaces
+        if (key == 9 && !e.shiftKey && !e.ctrlKey && !e.altKey) {
             var os = area.scrollTop();
             var ta = area.get(0);
             if (ta.setSelectionRange) {
-               var ss = ta.selectionStart;
-               var se = ta.selectionEnd;
-               area.val(area.val().substring(0, ss) + str + area.val().substr(se));
-               ta.setSelectionRange(ss + str.length, se + str.length);
-               e.returnValue = false;
+                var ss = ta.selectionStart;
+                var se = ta.selectionEnd;
+                this.textarea.val(this.textarea.val().substring(0, ss) + str + this.textarea.val().substr(se));
+                ta.setSelectionRange(ss + str.length, se + str.length);
             }
             else if (ta.createTextRange) {
-               document.selection.createRange().text = str;
-               e.returnValue = false;
+                document.selection.createRange().text = str;
             }
             //Fallback if we can't correctly create a range.  Just disallow tab replacement.
             else {
-               return true;
+                return;
             }
-            area.scrollTop(os);
+            this.textarea.scrollTop(os);
             e.preventDefault();
-            return false;
-         }
-         return true;
-      }
+        }
+    };
 
-      //Placeholder handling.  Remove on focus, add on blur if supertextarea is empty
-      if (options.placholder.use) {
-         if (!area.val().length) {
-            if (options.placeholder.css != undefined) {
-               area.css(options.placeholder.css);
+    $.fn[pluginName] = function (options) {
+        return this.each(function () {
+            if (!this.get(0).tagName.toLowerCase() === "textarea") {
+                return;
             }
-            area.val(options.placeholder.text);
-            area.data('usingPlaceholder', true);
-         }
-
-         area.focus(function () {
-            if (area.data('usingPlaceholder')) {
-               area.val('');
-               if (options.css != undefined) {
-                  area.css(options.css);
-               }
-               area.data('usingPlaceholder', false);
+            if (!$.data(this, pluginName)) {
+                var supertextarea = new Plugin(this, options);
+                supertextarea.init();
+                $.data(this, pluginName, supertextarea);
             }
-         });
-         area.blur(function () {
-            if (!area.val().length) {
-               area.data('usingPlaceholder', true);
-               if (options.placeholder.css != undefined) {
-                  area.css(options.placeholder.css);
-               }
-               area.val(options.placeholder.text);
-            }
-         });
-      }
-
-      area.css({'overflow':'auto'})
-         .keydown(function (e) { update(e); })
-         .keyup(function () { update(); })
-         .bind('paste', function () { setTimeout(update, 250); });
-
-      update();
-   };
-
-   $.fn[pluginName] = function (options) {
-      return this.each(function () {
-         if (!this.get(0).tagName.toLowerCase() == "textarea") {
-            return;
-         }
-         if (!$.data(this, "plugin_" + pluginName)) {
-            var supertextarea = new Plugin(this, options);
-            supertextarea[pluginName]();
-            $.data(this, "plugin_" + pluginName, supertextarea);
-         }
-      });
-   }
+        });
+    }
 })(jQuery, window, document);
+
