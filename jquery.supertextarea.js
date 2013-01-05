@@ -63,7 +63,7 @@
                 //The text displayed.  See displayRemaining
                 text: 'Required',
                 //Css on the to-go div
-                , css: {},
+                css: {},
                 //If user tries to submit form with an inadequate number of characters,
                 //scroll the textarea into view if this is true
                 slide: true
@@ -86,12 +86,19 @@
 
         defaultOptions.minWidth = textarea.width();
         defaultOptions.minHeight = textarea.height();
-        defaultOptions.maxWidth = textarea.parent().width();
-        defaultOptions.maxHeight = textarea.parent().height();
+
+        parentWidth = textarea.parent().width();
+        defaultOptions.maxWidth = parentWidth > defaultOptions.minWidth ? parentWidth : defaultOptions.minWidth;
+
+        parentHeight = textarea.parent().height();
+        defaultOptions.maxHeight = parentHeight > defaultOptions.minHeight ? parentHeight : defaultOptions.minHeight;
 
         this.options = $.extend({}, defaultOptions, userOptions);
         this._defaultOptions = defaultOptions;
         this._name = pluginName;
+
+        //"beholder" shadows the textarea to match size
+        this.beholder = $('<div>').css({'position': 'absolute','display': 'none', 'word-wrap':'break-word'});
     };
 
     Plugin.prototype.init = function () {
@@ -143,22 +150,12 @@
             'fontWeight'
         ];
 
-        //id number of the display notice
-        var idcounter = _counter++;
-
-        //"beholder" shadows the textarea to match size
-        var beh = $('<div>').css({'position': 'absolute','display': 'none', 'word-wrap':'break-word'});
-
-        //get the height of the line in pixels, from available source
-        var line = parseInt(this.textarea.css('line-height')) || parseInt(this.textarea.css('font-size'));
-        var goalheight = 0;
-
         //Copy all textarea css that affects width/height to the beholder
-        beh.appendTo(this.textarea.parent());
+        this.beholder.appendTo(this.textarea.parent());
         for (var i = 0; i < rep_css.length; i++) {
-            beh.css(rep_css[i].toString(), this.textarea.css(rep_css[i].toString()));
+            this.beholder.css(rep_css[i].toString(), this.textarea.css(rep_css[i].toString()));
         }
-        beh.css('max-width', this.options.maxWidth);
+        this.beholder.css('max-width', this.options.maxWidth);
 
         //Prevent form submission if supertextarea text length is not in the correct limits
         this.textarea.closest("form").submit($.proxy(function (e) {
@@ -173,6 +170,7 @@
                     $("html, body").animate({scrollTop: this.textarea.offset().top});
                 }
                 e.preventDefault();
+                e.stopImmediatePropagation();
             }
             else if (this.textarea.data('usingPlaceholder')) {
                 this.textarea.val('');
@@ -180,12 +178,12 @@
         }, this));
 
         //Placeholder handling.  Remove on focus, add on blur if supertextarea is empty
-        if (this.options.placholder.use) {
+        if (this.options.placeholder.use) {
             if (!this.textarea.val().length) {
                 if (this.options.placeholder.css != undefined) {
-                    this.textarea.css(options.placeholder.css);
+                    this.textarea.css(this.options.placeholder.css);
                 }
-                this.textarea.val(options.placeholder.text);
+                this.textarea.val(this.options.placeholder.text);
                 this.textarea.data('usingPlaceholder', true);
             }
 
@@ -243,21 +241,20 @@
 
         //Handle display-remaining
         if (this.options.displayRemaining.use && this.options.maxLength) {
-            var displayMessage;
-            if (!$("#textarea_dsrm" + this.textarea.data('displayRemaining')).length) {
-                displayMessage = $('<div>');
-                displayMessage.attr('id', "textarea_dsrm" + idcounter);
-                this.textarea.after(displayMessage);
-                this.textarea.data('displayRemaining', idcounter);
+            var displayRemaining;
+            if (!this.textarea.data('displayMessage')) {
+                displayMessage = $("<div>");
+                this.textarea.data('displayMessage', displayMessage).after(displayMessage);
             }
             else {
-                displayMessage = $("#textarea_dsrm" + this.textarea.data('displayRemaining'));
+                displayMessage = this.textarea.data('displayMessage');
             }
 
-            var tl = this.textarea.data('usingPlaceholder') ? 0 : this.textarea.val().length;
-            var txt = options.maxLength - tl;
+            //text length
+            var tl = this.textarea.data('usingPlaceholder') ? 0 : (this.options.trim ? $.trim(this.textarea.val()).length : this.textarea().val().length);
+            var txt = this.options.maxLength - tl;
             txt = txt < 0 ? 0 : txt;
-            var rem = tl - options.minLength;
+            var rem = tl - this.options.minLength;
             var remtxt;
             var num;
             var msg;
@@ -296,17 +293,20 @@
 
         //Figure out the textarea content as html to compare with the beholder size
         var ac = this.textarea.val().replace(/&/g,'&amp;').replace(/  /g, '&nbsp;&nbsp;').replace(/<|>/g, '&gt;').replace(/\n/g, '<br />');
-        var bc = beh.html();
+        var bc = this.beholder.html();
+
+        //get the height of the line in pixels, from available source
+        var line = parseInt(this.textarea.css('line-height')) || parseInt(this.textarea.css('font-size'));
 
         //Update width/height of textarea when it goes outside of its bounds by enough
         if (ac + '&nbsp;' != bc) {
-            beh.html(ac + '&nbsp;&nbsp;');
-            if (Math.abs(beh.height() + line - area.height()) > 3
-                || Math.abs(beh.width() + line - area.width()) > 3
+            this.beholder.html(ac + '&nbsp;&nbsp;');
+            if (Math.abs(this.beholder.height() + line - this.textarea.height()) > 3
+                || Math.abs(this.beholder.width() + line - this.textarea.width()) > 3
             ) {
-                var nh = beh.height() + line;
-                var maxh = options.maxh;
-                var minh = options.minh;
+                var nh = this.beholder.height() + line;
+                var maxh = this.options.maxHeight;
+                var minh = this.options.minHeight;
                 if (nh >= maxh) {
                     this.eval_height(maxh, 'auto');
                 }
@@ -317,9 +317,9 @@
                     this.eval_height(nh, 'hidden');
                 }
 
-                var nw = beh.width() + line;
-                var maxw = options.maxw;
-                var minw = options.minw;
+                var nw = this.beholder.width() + line;
+                var maxw = this.options.maxWidth;
+                var minw = this.options.minWidth;
                 if (nw >= maxw) {
                     this.eval_width(maxw, 'auto');
                 }
@@ -327,7 +327,7 @@
                     this.eval_width(minw, 'hidden');
                 }
                 else {
-                    if (beh.height() + line > maxh) {
+                    if (this.beholder.height() + line > maxh) {
                         this.eval_width(nw + line, 'hidden');
                     }
                     else {
@@ -346,8 +346,8 @@
 
         //the tab key; prevent blurring and replace with either tab character or spaces
         if (key == 9 && !e.shiftKey && !e.ctrlKey && !e.altKey) {
-            var os = area.scrollTop();
-            var ta = area.get(0);
+            var os = this.textarea.scrollTop();
+            var ta = this.textarea.get(0);
             if (ta.setSelectionRange) {
                 var ss = ta.selectionStart;
                 var se = ta.selectionEnd;
@@ -368,11 +368,11 @@
 
     $.fn[pluginName] = function (options) {
         return this.each(function () {
-            if (!this.get(0).tagName.toLowerCase() === "textarea") {
+            if (!this.tagName.toLowerCase() === "textarea") {
                 return;
             }
             if (!$.data(this, pluginName)) {
-                var supertextarea = new Plugin(this, options);
+                var supertextarea = new Plugin($(this), options);
                 supertextarea.init();
                 $.data(this, pluginName, supertextarea);
             }

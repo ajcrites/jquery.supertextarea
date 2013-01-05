@@ -14,7 +14,7 @@ It is highly extensible and you can design textareas that can be used from all k
 
 ## Documentation
 
-http://explosion-pills.com/development/jquery/plugins/supertextarea/#headerlinks\_ident2
+http://explosion-pills.com/development/jquery/plugins/supertextarea/
 
 ## Installation
 
@@ -22,5 +22,5 @@ Include jQuery.  Any time after that, include this script as you would any other
 
 ## Contributing
 
-* Use three spaces for indentation
+* Use four spaces for indentation
 * Write `if (`, `for (`, and `function (` as opposed to `if(`, `for(`, `function(`
