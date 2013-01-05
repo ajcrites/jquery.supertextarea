@@ -6,8 +6,7 @@
  */
 ;(function ($, window, document, undefined) {
 
-    var _counter = 0,
-        pluginName = "supertextarea",
+    var pluginName = "supertextarea",
         defaultOptions = {
             /**#@+
              * Minimum/maximum width/height of the textarea.  By default, these are
@@ -379,4 +378,3 @@
         });
     }
 })(jQuery, window, document);
-
